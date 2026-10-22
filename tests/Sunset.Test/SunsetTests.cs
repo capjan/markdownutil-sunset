@@ -34,7 +34,7 @@ public class NoticeConfigTests
         var config = NoticeConfig.Load();
 
         Assert.False(config.IsSunrise);
-        Assert.Equal("MarkdownUtil has reached end of life", config.Active.Title);
+        Assert.Equal("We moved! MarkdownUtil is now mdu", config.Active.Title);
         Assert.Contains("dotnet tool install --global mdu", string.Join("\n", config.Active.Lines));
     }
 
@@ -56,33 +56,62 @@ public class NoticeConfigTests
     }
 }
 
-public class SkyAnimationTests
+public class DemosceneTests
 {
-    [Fact]
-    public void SunsetStartsWithSunOnTopAndEndsWithoutSun()
-    {
-        var frames = SkyAnimation.Frames(rising: false);
+    private static readonly System.Text.RegularExpressions.Regex Ansi = new("\x1b\\[[0-9;?]*[A-Za-z]|\x1b\\].*?\x1b\\\\");
 
-        Assert.Contains('O', string.Concat(frames[0]));
-        Assert.DoesNotContain('O', string.Concat(frames[^1]));
+    [Fact]
+    public void ProducesOneFramePerStepPlusFinal()
+    {
+        var frames = Demoscene.Frames("HELLO", rising: false, color: true);
+
+        Assert.Equal(Demoscene.Steps + 1, frames.Count);
     }
 
     [Fact]
-    public void SunriseStartsWithoutSunAndEndsWithSun()
+    public void EveryFrameHasTheConfiguredRowCountAndWidth()
     {
-        var frames = SkyAnimation.Frames(rising: true);
-
-        Assert.DoesNotContain('O', string.Concat(frames[0]));
-        Assert.Contains('O', string.Concat(frames[^1]));
-    }
-
-    [Fact]
-    public void EveryFrameHasTheConfiguredHeightAndWidth()
-    {
-        foreach (var frame in SkyAnimation.Frames(rising: false))
+        foreach (var frame in Demoscene.Frames("HELLO", rising: false, color: false))
         {
-            Assert.Equal(SkyAnimation.Height, frame.Length);
-            Assert.All(frame, line => Assert.True(line.Length <= SkyAnimation.Width));
+            var rows = frame.Split('\n');
+            Assert.Equal(Demoscene.Height, rows.Length);
+            Assert.All(rows, row => Assert.Equal(Demoscene.Width, row.Length));
         }
+    }
+
+    [Fact]
+    public void SunsetStartsWithSunInTheSkyAndEndsBehindTheHorizon()
+    {
+        var frames = Demoscene.Frames("HELLO", rising: false, color: false);
+
+        Assert.Contains('\u2588', frames[0]);
+        Assert.DoesNotContain('\u2588', frames[^1].Split('\n')[..5].Aggregate("", (acc, row) => acc + row));
+    }
+
+    [Fact]
+    public void SunriseStartsWithoutSunAndEndsWithSunInTheSky()
+    {
+        var frames = Demoscene.Frames("HELLO", rising: true, color: false);
+
+        Assert.DoesNotContain('\u2588', frames[0].Split('\n')[..5].Aggregate("", (acc, row) => acc + row));
+        Assert.Contains('\u2588', frames[^1]);
+    }
+
+    [Fact]
+    public void ColorOffProducesNoEscapeSequences()
+    {
+        var frame = Demoscene.Frames("HELLO", rising: false, color: false)[10];
+
+        Assert.DoesNotContain('\x1b', frame);
+    }
+
+    [Fact]
+    public void ColorOnProducesAnsiColorsThatStripToTheSameText()
+    {
+        var colored = Demoscene.Frames("HELLO", rising: false, color: true)[10];
+        var plain = Demoscene.Frames("HELLO", rising: false, color: false)[10];
+
+        Assert.Contains("\x1b[38;5;", colored);
+        Assert.Equal(plain, Ansi.Replace(colored, ""));
     }
 }

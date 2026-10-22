@@ -5,32 +5,37 @@ public static class Presenter
 {
     private const string HideCursor = "\x1b[?25l";
     private const string ShowCursor = "\x1b[?25h";
-    private const string ClearLine = "\x1b[2K";
-    private static readonly TimeSpan FrameDelay = TimeSpan.FromMilliseconds(120);
+    private const string SaveCursor = "\u001b7";
+    private const string RestoreCursor = "\u001b8";
+    private static readonly TimeSpan FrameDelay = TimeSpan.FromMilliseconds(40);
+    private static readonly TimeSpan FinalHold = TimeSpan.FromMilliseconds(1200);
 
-    public static void PlayAnimation(TextWriter output, bool rising)
+    public static void PlayAnimation(TextWriter output, NoticeSection section, bool rising, bool color)
     {
+        var frames = Demoscene.Frames(section.Scroller, rising, color);
+
         output.Write(HideCursor);
         try
         {
-            var frames = SkyAnimation.Frames(rising);
-            for (var index = 0; index < frames.Count; index++)
+            // Reserve the animation area below the cursor, then remember its top-left corner.
+            for (var row = 0; row < Demoscene.Height; row++)
+                output.WriteLine();
+            output.Write($"\x1b[{Demoscene.Height}A{SaveCursor}");
+
+            foreach (var frame in frames)
             {
-                if (index > 0)
-                    output.Write($"\x1b[{SkyAnimation.Height}A");
-
-                foreach (var line in frames[index])
-                    output.WriteLine($"{ClearLine}{line}");
-
+                output.Write(RestoreCursor);
+                output.Write(frame);
                 output.Flush();
                 Thread.Sleep(FrameDelay);
             }
 
-            Thread.Sleep(TimeSpan.FromMilliseconds(800));
+            Thread.Sleep(FinalHold);
         }
         finally
         {
-            output.Write(ShowCursor);
+            output.Write($"{ShowCursor}\x1b[0m");
+            output.WriteLine();
         }
     }
 

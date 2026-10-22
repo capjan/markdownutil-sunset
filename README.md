@@ -6,7 +6,7 @@ Final release of the `MarkdownUtil` package. Its `mdu` command shows an animated
 
 | Environment | Animation | Output | Exit code |
 | --- | --- | --- | --- |
-| Interactive terminal | Sunset (or sunrise) in ASCII art | Notice with clickable links | 0 |
+| Interactive terminal | Demoscene-style sunset (or sunrise): plasma, retro grid, raster sun, sine scroller | Notice with clickable links | 0 |
 | Pipe or redirected output | none | Notice as plain text | 0 |
 | CI pipeline (`CI`, `GITHUB_ACTIONS`, `GITLAB_CI`, …) | none | Short hint on stderr | 1 |
 
@@ -17,6 +17,7 @@ The CI exit code is deliberate. A failing pipeline shows the migration, and the 
 All text lives in `src/Sunset/Res/notice.json`:
 
 - `mode`: `sunset` (default for 4.9.0) or `sunrise`. Sunrise replaces the sunset notice in a successor release.
+- `scroller`: the text of the sine scroller under the animation. Keep it short and uppercase-friendly.
 - `sunset` and `sunrise`: `title`, `ciHint`, `lines` (plain text), and `links` (`label`, `url`). Links are clickable in terminals that support OSC 8 hyperlinks and are always printed as text.
 
 Changing the text means changing the JSON and publishing a new version.

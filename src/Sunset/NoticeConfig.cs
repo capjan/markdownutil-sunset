@@ -35,6 +35,7 @@ public sealed record NoticeConfig(
 public sealed record NoticeSection(
     string Title,
     string CiHint,
+    string Scroller,
     IReadOnlyList<string> Lines,
     IReadOnlyList<NoticeLink> Links);
 
