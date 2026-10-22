@@ -1,0 +1,31 @@
+{
+  "mode": "sunset",
+  "sunset": {
+    "title": "MarkdownUtil has reached end of life",
+    "ciHint": "MarkdownUtil has reached end of life and is replaced by mdu. This notice fails the build on purpose so the migration cannot be missed. Replace the tool with: dotnet tool uninstall --global MarkdownUtil && dotnet tool install --global mdu (use --local and a tool manifest instead when the project uses one). We apologize for the disruption. Details: https://github.com/capjan/mdu",
+    "lines": [
+      "The MarkdownUtil package is no longer maintained. The mdu command is now provided by the mdu package.",
+      "This notice replaces the tool on purpose. Pipelines that run mdu now fail with exit code 1 so the migration is visible. We apologize for the inconvenience.",
+      "",
+      "Migrate in two steps:",
+      "  dotnet tool uninstall --global MarkdownUtil",
+      "  dotnet tool install --global mdu",
+      "",
+      "In a project with a tool manifest, use: dotnet tool uninstall MarkdownUtil, then dotnet tool install mdu."
+    ],
+    "links": [
+      { "label": "mdu on NuGet", "url": "https://www.nuget.org/packages/mdu" },
+      { "label": "mdu on GitHub", "url": "https://github.com/capjan/mdu" }
+    ]
+  },
+  "sunrise": {
+    "title": "mdu is back",
+    "ciHint": "Replace this placeholder text in src/Sunset/Res/notice.json before publishing a sunrise release.",
+    "lines": [
+      "Placeholder message. Edit notice.json to describe the successor."
+    ],
+    "links": [
+      { "label": "Successor", "url": "https://github.com/capjan/mdu" }
+    ]
+  }
+}
