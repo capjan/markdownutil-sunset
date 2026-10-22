@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version to publish, for example 4.9.0
+        required: true
+        default: "4.9.0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Test, pack, and publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test MarkdownUtils.sln --configuration Release
+
+      - name: Pack
+        env:
+          PACKAGE_VERSION: ${{ inputs.version }}
+        run: dotnet pack Source/MarkdownUtil/MarkdownUtil.csproj --configuration Release --output artifacts/packages -p:Version="$PACKAGE_VERSION"
+
+      - name: NuGet login (OIDC)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish package
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ inputs.version }}
+        run: |
+          gh release create "v$PACKAGE_VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "MarkdownUtil $PACKAGE_VERSION" \
+            --notes "Final MarkdownUtil release. The code is unchanged from 4.8.0. This version adds a notice that moves users to mdu. See the README for the migration steps." \
+            artifacts/packages/*.nupkg
