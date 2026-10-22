@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Cap.Core" Version="11.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Res\Css\Highlight.css" />
+      <EmbeddedResource Include="Res\Css\Highlight.css" />
+    </ItemGroup>
+
+</Project>
